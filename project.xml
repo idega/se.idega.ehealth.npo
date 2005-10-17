@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project>
+  <extend>${base.project.dir}/base-dependencies.xml</extend>
+  <pomVersion>3</pomVersion>
+  <name>idegaWeb eHealth Nationell Patientoversikt Module</name>
+  <groupId>bundles</groupId>
+  <artifactId>se.idega.ehealth.npo</artifactId>
+  <currentVersion>1.0-SNAPSHOT</currentVersion>
+  <inceptionYear>2005</inceptionYear>
+  <shortDescription>This is an idegaWeb eHealth module for the Nationell Patientoversikt project.</shortDescription>
+  <developers>
+    <developer>
+      <name>Tryggvi Larusson</name>
+      <id>tryggvil</id>
+      <email>tryggvi@idega.is</email>
+      <organization>idega software</organization>
+    </developer>
+    <developer>
+      <name>Maris Orbidans</name>
+      <id>mariso</id>
+      <email>maris.orbidans@idega.lv</email>
+      <organization>idega Baltic</organization>
+    </developer>
+  </developers>
+  <dependencies>
+  </dependencies>
+</project>
+
