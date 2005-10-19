@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project>
-  <extend>${base.project.dir}/base-dependencies.xml</extend>
+  <extend>${base.project.dir}/base-project.xml</extend>
   <pomVersion>3</pomVersion>
   <name>idegaWeb eHealth Nationell Patientoversikt Module</name>
   <groupId>bundles</groupId>
@@ -24,6 +24,100 @@
     </developer>
   </developers>
   <dependencies>
+  
+   <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <type>jar</type>
+            <url>http://www.ibiblio.org/maven</url>
+			<properties>
+			</properties>
+	</dependency>   
+
+   <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.3</version>
+            <type>jar</type>
+            <url>http://www.ibiblio.org/maven</url>
+			<properties>
+			</properties>
+	</dependency>   
+   
+   <dependency>
+            <groupId>axis</groupId>
+            <artifactId>axis-saaj</artifactId>
+            <version>1.2.1</version>
+            <type>jar</type>
+            <url>http://www.ibiblio.org/maven</url>
+			<properties>
+			</properties>
+	</dependency>   
+
+  
+   <dependency>
+            <groupId>axis</groupId>
+            <artifactId>axis</artifactId>
+            <version>1.2.1</version>
+            <type>jar</type>
+            <url>http://www.ibiblio.org/maven</url>
+			<properties>
+			</properties>
+	</dependency>   
+	
+	<dependency>
+            <groupId>myfaces</groupId>
+            <artifactId>myfaces-api</artifactId>
+            <version>1.1.0</version>
+            <type>jar</type>
+            <url>http://www.ibiblio.org/maven</url>
+			<properties>
+			</properties>
+	</dependency>   	
+
+	<dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.0.4</version>
+            <type>jar</type>
+            <url>http://www.ibiblio.org/maven</url>
+			<properties>
+			</properties>
+	</dependency> 
+
+	<dependency>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+            <url>http://www.ibiblio.org/maven</url>
+			<properties>
+			</properties>
+	</dependency> 
+
+	<dependency>
+            <groupId>axis</groupId>
+            <artifactId>axis-jaxrpc</artifactId>
+            <version>1.2.1</version>
+            <type>jar</type>
+            <url>http://www.ibiblio.org/maven</url>
+			<properties>
+			</properties>
+	</dependency>  	
+
+	<dependency>
+      <groupId>bundles</groupId>
+      <artifactId>se.carelink.npo</artifactId>
+      <version>SNAPSHOT</version>
+      <type>jar</type>
+      <url>http://www.idega.com/</url>
+      <properties>
+        <eclipse.dependency>true</eclipse.dependency>
+      </properties>
+    </dependency>
+  
+  
   </dependencies>
 </project>
 
