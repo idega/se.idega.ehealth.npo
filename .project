@@ -5,6 +5,8 @@
   <comment>
   </comment>
   <projects>
+    <project>se.carelink.npo</project>
+    <project>se.idega.ehealth</project>
   </projects>
   <buildSpec>
     <buildCommand>
