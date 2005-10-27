@@ -116,7 +116,27 @@
         <eclipse.dependency>true</eclipse.dependency>
       </properties>
     </dependency>
-  
+    
+    <dependency>
+      <groupId>bundles</groupId>
+      <artifactId>se.idega.ehealth</artifactId>
+      <version>SNAPSHOT</version>
+      <type>jar</type>
+      <url>http://www.idega.com/</url>
+      <properties>
+      </properties>
+    </dependency>
+
+    <dependency>
+      <groupId>bundles</groupId>
+      <artifactId>com.idega.core</artifactId>
+      <version>SNAPSHOT</version>
+      <type>jar</type>
+      <url>http://www.idega.com/</url>
+      <properties>
+      </properties>
+    </dependency>    
+ 
   
   </dependencies>
 </project>
