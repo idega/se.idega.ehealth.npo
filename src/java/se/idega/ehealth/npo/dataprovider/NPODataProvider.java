@@ -5,6 +5,9 @@ import javax.faces.context.FacesContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.idega.presentation.IWContext;
+import se.carelink.webservices.npo.ArrayOfKuvert;
+import se.carelink.webservices.npo.HamtaVarddokumentIndexReply;
+import se.carelink.webservices.npo.Kuvert;
 import se.carelink.webservices.npo.NPOMessageHeader;
 import se.carelink.webservices.npo.NPOServiceLocator;
 import se.carelink.webservices.npo.NPOServiceSoap;
@@ -17,10 +20,10 @@ import se.idega.ehealth.business.dataprovider.valueobj.PersonalInfo;
  * <p>
  * TODO Maris_O Describe Type NPODataProvider
  * </p>
- *  Last modified: $Date: 2005/10/27 12:40:02 $ by $Author: mariso $
+ *  Last modified: $Date: 2005/11/15 13:32:37 $ by $Author: mariso $
  * 
  * @author <a href="mailto:Maris.Orbidans@idega.lv">Maris.Orbidans</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  */
 public class NPODataProvider implements se.idega.ehealth.business.dataprovider.DataProvider
 {
@@ -55,6 +58,23 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
         }
         
     }
+
+    
+    public void readReferalls(String personId)
+    {
+        PersonalInfo result = new PersonalInfo();
+        try
+        {
+            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);
+            ArrayOfKuvert a = r.getKuvert();
+            //Kuvert[] k = r.getKuvert().getKuvert();
+            int e=9;
+        } catch (RemoteException ex)
+        {
+            log.fatal("readReferalls failed", ex);            
+        }
+        
+    }    
     
     public PersonalInfo readPersonalInfo(String personId)
     {
