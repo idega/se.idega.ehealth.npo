@@ -87,7 +87,9 @@ public class VardDokumentBean {
 	 * Gets the vardokument, get the id from the url
 	 * Checks the type o
 	 */
-	public void fetchVarddokument(){
+	public void fetchVarddokument(){}
+    
+    /*
 		String pnr = ticketBean.getinputPID();
 		VD_id[] v_arrid;
 		String npo_typ;
@@ -152,7 +154,7 @@ public class VardDokumentBean {
 		}
 		vardDocumentAsXml = this.npoSessionBean.getXsltTransformBean().basicXSLTTransform(xmlContent,this.npoSessionBean.getXsltTransformBean().getXsltSource(npo_typ),null);
 
-	}
+	}*/
 
 
 	/**

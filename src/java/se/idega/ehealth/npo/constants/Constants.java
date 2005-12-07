@@ -6,4 +6,7 @@ public class Constants
 	
 	// properties
 	public static final String SESSION_TIME_OUT_PROPERTY = "http_session_timeout";
+    
+    
+    public static final String DOC_TYPE_CONTACTS = "PRIMVARDSKONTAKTRPT";
 }

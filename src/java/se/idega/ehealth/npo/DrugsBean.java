@@ -94,7 +94,13 @@ public class DrugsBean {
 	 * @param vID the concatenated varddokumnet id as a string
 	 * @return the content of the vårddokument
 	 */
-	public String fetchLakLista(ArrayOfVD_id vArr){
+	public String fetchLakLista(ArrayOfVD_id vArr)
+    
+    {
+        return null;
+    }
+    
+    /*
 		XmlParser xmlParse = new XmlParser();
 		se.carelink.webservices.npo.ArrayOfKuvert arrKuvert; 
 		String pnr = ticketBean.getinputPID();
@@ -118,7 +124,7 @@ public class DrugsBean {
 		}			
 		xmlToParse = xmlParse.getLakemedelsLista();
 		return xmlParse.getLakemedelsLista();
-	}
+	}*/
 	/**
 	 * @return Returns the lakList.
 	 */
@@ -134,8 +140,11 @@ public class DrugsBean {
 	/**
 	 *  get the läkemedelslistvårddokuments id from the vårdindexlist and store them in the drugDocIds
 	 */
-	public boolean getDrugIds(){
-		
+	public boolean getDrugIds()
+    {
+        return false;
+    }
+		/*
 		//check for fatal error 
 		 if(this.npoReplyBean.hasFatalError())
 		 	return false;
@@ -157,7 +166,7 @@ public class DrugsBean {
 		}
 		xmlToParse = getListor(arrList);
 		return true;
-	}
+	}*/
 	
 	/**
 	 * Loops through the vid array and gets the documents

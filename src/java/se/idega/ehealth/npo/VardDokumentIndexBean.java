@@ -401,7 +401,11 @@ public class VardDokumentIndexBean {
 	 * initializes the values in the filter dropdown boxes.
 	 *
 	 */
-	public void initFilterLists(){
+	public void initFilterLists()
+    {
+        
+    }
+        /*
 		String first;
 		String last;
 		String DATE_FORMAT = "yyyyMMdd";
@@ -470,7 +474,7 @@ public class VardDokumentIndexBean {
 	}
 	public String gotoLak(){
 		return "gotoLak";
-	}
+	}*/
 	
 	/**
 	 *  Returns true if an error is reported from the PÖS-service
