@@ -1,5 +1,7 @@
 package se.idega.ehealth.npo.dataprovider;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,7 @@ import se.carelink.webservices.npo.VD_id;
 import se.idega.ehealth.business.dataprovider.DataProvider;
 import se.idega.ehealth.business.dataprovider.valueobj.PersonalInfo;
 import se.idega.ehealth.npo.constants.Constants;
+import se.idega.ehealth.npo.libraries.XmlDocumentParser;
 import se.idega.ehealth.presentation.valueobjects.ContactsValueObject;
 
 /**
@@ -27,10 +30,10 @@ import se.idega.ehealth.presentation.valueobjects.ContactsValueObject;
  * <p>
  * TODO Maris_O Describe Type NPODataProvider
  * </p>
- *  Last modified: $Date: 2005/12/07 16:27:45 $ by $Author: mariso $
+ *  Last modified: $Date: 2006/01/16 09:35:49 $ by $Author: mariso $
  * 
  * @author <a href="mailto:Maris.Orbidans@idega.lv">Maris.Orbidans</a>
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class NPODataProvider implements se.idega.ehealth.business.dataprovider.DataProvider
 {
@@ -54,6 +57,7 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
             {
                 // for testing purposes
                 address = "http://195.22.83.100:8888/axis/services/PDTSoap";
+                //address = "http://62.119.136.53/axis/services/PDTSoap";                
             }
             
             locator.setPDTSoapEndpointAddress(address);
@@ -81,8 +85,52 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
         return result;
     }     
     
+    
+    public void readall(String personId)
+    {
+        try
+        {
+            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);            
+            Kuvert[] k = r.getKuvert();
+                       
+            List vdList = new ArrayList();
+            
+            for (int i=0; i<k.length ; i++)     // select indexes of proper type
+            {            
+                vdList.add(k[i].getVd_id());                   
+            }            
+            
+            VD_id [] vdids = (VD_id []) vdList.toArray(new VD_id [vdList.size()]);  
+            
+            HamtaVarddokumentReply reply =  service.hamtaVarddokument(vdids);    
+            
+            Kuvert[] docs = reply.getKuvert();
+                        
+            
+            BufferedWriter out = new BufferedWriter(new FileWriter("outfilename.txt"));
+            
+            for (int i=0; i<docs.length ; i++)
+            {
+
+                
+                String xx = docs[0].getContent();        // read document's content as xml
+                
+               out.write(xx);
+                
+            }
+            out.close();
+            
+        } catch (Exception ex)
+        {
+            log.fatal("readContacts failed", ex);            
+        }
+        
+    }
+    
     public ContactsValueObject[] readContacts(String personId)
     {
+        //readall(personId);
+        
         ContactsValueObject[] result = new ContactsValueObject[0];
         try
         {
@@ -105,24 +153,32 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
             
             Kuvert[] docs = reply.getKuvert();
             
-            result = new ContactsValueObject[docs.length];
+            ArrayList contacts = new ArrayList();            
             
             for (int i=0; i<docs.length ; i++)
             {
+                Kuvert doc = docs[i];                
+                
+                XmlDocumentParser parser = new XmlDocumentParser(doc.getContent(),"c","urn:carelink"); 
+
+                String provider = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOPerson/c:name");
+                String unit = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOOrganisation/c:name");
+                
+                if (provider ==null || unit == null) 
+                {
+                    continue;
+                }
+                
                 ContactsValueObject con = new ContactsValueObject();
-                con.setDate(docs[i].getTidsstampel().getTime());
+                con.setDate(doc.getTidsstampel().getTime());
+                con.setProvider(provider);
+                con.setUnit(unit);               
                 
-                con.setProvider("provider_"+i);
-                con.setUnit("unit_"+i);
+                contacts.add(con);
                 
-                result[i] = con;
-                
-                String xx = docs[0].getContent();        // read document's content as xml
-                
-                System.out.print(xx);
-            }
-            
-        } catch (RemoteException ex)
+            }   
+            result = (ContactsValueObject[]) contacts.toArray(new ContactsValueObject[]{});
+        } catch (Exception ex)
         {
             log.fatal("readContacts failed", ex);            
         }
@@ -203,7 +259,7 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
         }
         catch (Throwable ex)
         {
-            log.warn("Unable to read WS_ENDPOINT_ADDRESS from SystemProperties", ex);
+            log.warn("Unable to read WS_ENDPOINT_ADDRESS from SystemProperties");
         }
         return result;
     }
