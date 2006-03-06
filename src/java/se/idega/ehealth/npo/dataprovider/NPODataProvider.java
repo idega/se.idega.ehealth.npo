@@ -24,16 +24,20 @@ import se.idega.ehealth.business.dataprovider.valueobj.PersonalInfo;
 import se.idega.ehealth.npo.constants.Constants;
 import se.idega.ehealth.npo.libraries.XmlDocumentParser;
 import se.idega.ehealth.presentation.valueobjects.ContactsValueObject;
+import se.idega.ehealth.presentation.valueobjects.DiagnosisValueObject;
+import se.idega.ehealth.presentation.valueobjects.MedicinesValueObject;
+import se.idega.ehealth.presentation.valueobjects.ReferralsOfXrayValueObject;
+import se.idega.ehealth.presentation.valueobjects.ReferralsValueObject;
 
 /**
  * 
  * <p>
  * TODO Maris_O Describe Type NPODataProvider
  * </p>
- *  Last modified: $Date: 2006/01/16 09:35:49 $ by $Author: mariso $
+ *  Last modified: $Date: 2006/03/06 15:18:23 $ by $Author: mariso $
  * 
  * @author <a href="mailto:Maris.Orbidans@idega.lv">Maris.Orbidans</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class NPODataProvider implements se.idega.ehealth.business.dataprovider.DataProvider
 {
@@ -42,8 +46,6 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
     protected PDTSoap service;
     protected String context="";
     protected String ticket="";
-    
-    public static final String WS_ENDPOINT_ADDRESS= "NPO_WS_ENDPOINT_ADDRESS";
     
     public NPODataProvider()
     {
@@ -55,9 +57,7 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
             
             if (address==null)
             {
-                // for testing purposes
-                address = "http://195.22.83.100:8888/axis/services/PDTSoap";
-                //address = "http://62.119.136.53/axis/services/PDTSoap";                
+                address = Constants.DEFAULT_SERVICE_ENDPOINT;                
             }
             
             locator.setPDTSoapEndpointAddress(address);
@@ -67,70 +67,10 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
         {
             log.fatal("NPODataProvider initialization failed", ex);
         }
-    }
-    
-    public Object readReferalls(String personId, String contactId)
-    {
-        List result = new ArrayList();
-        try
-        {
-            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);
-            Kuvert[] k = r.getKuvert();
-            int t=0;
-            t++;
-        } catch (RemoteException ex)
-        {
-            log.fatal("readReferalls failed", ex);            
-        }        
-        return result;
-    }     
-    
-    
-    public void readall(String personId)
-    {
-        try
-        {
-            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);            
-            Kuvert[] k = r.getKuvert();
-                       
-            List vdList = new ArrayList();
-            
-            for (int i=0; i<k.length ; i++)     // select indexes of proper type
-            {            
-                vdList.add(k[i].getVd_id());                   
-            }            
-            
-            VD_id [] vdids = (VD_id []) vdList.toArray(new VD_id [vdList.size()]);  
-            
-            HamtaVarddokumentReply reply =  service.hamtaVarddokument(vdids);    
-            
-            Kuvert[] docs = reply.getKuvert();
-                        
-            
-            BufferedWriter out = new BufferedWriter(new FileWriter("outfilename.txt"));
-            
-            for (int i=0; i<docs.length ; i++)
-            {
-
-                
-                String xx = docs[0].getContent();        // read document's content as xml
-                
-               out.write(xx);
-                
-            }
-            out.close();
-            
-        } catch (Exception ex)
-        {
-            log.fatal("readContacts failed", ex);            
-        }
-        
-    }
+    }    
     
     public ContactsValueObject[] readContacts(String personId)
     {
-        //readall(personId);
-        
         ContactsValueObject[] result = new ContactsValueObject[0];
         try
         {
@@ -185,6 +125,221 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
         return result;
     }    
     
+    public ReferralsValueObject[] readReferralsOfClinical(String personId)
+    {       
+        ReferralsValueObject[] result = new ReferralsValueObject[0];
+        try
+        {
+            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);            
+            Kuvert[] k = r.getKuvert();
+                       
+            List vdList = new ArrayList();
+            
+            for (int i=0; i<k.length ; i++)     // select indexes of proper type
+            {
+                if (k[i].getNpo_typ().equals(Constants.DOC_TYPE_CONTACTS))
+                {
+                    vdList.add(k[i].getVd_id());       
+                }
+            }            
+            
+            VD_id [] vdids = (VD_id []) vdList.toArray(new VD_id [vdList.size()]);  
+            
+            HamtaVarddokumentReply reply =  service.hamtaVarddokument(vdids);    
+            
+            Kuvert[] docs = reply.getKuvert();
+            
+            ArrayList list = new ArrayList();            
+            
+            for (int i=0; i<docs.length ; i++)
+            {
+                Kuvert doc = docs[i];                
+                
+                XmlDocumentParser parser = new XmlDocumentParser(doc.getContent(),"c","urn:carelink"); 
+
+                String provider = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOPerson/c:name");
+                String unit = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOOrganisation/c:name");
+                
+                if (provider ==null || unit == null) 
+                {
+                    continue;
+                }
+                
+                ReferralsValueObject con = new ReferralsValueObject();
+                con.setDate(doc.getTidsstampel().getTime());
+                con.setProvider(provider);
+                con.setUnit(unit);               
+                
+                list.add(con);
+                
+            }   
+            result = (ReferralsValueObject[]) list.toArray(new ReferralsValueObject[]{});
+        } catch (Exception ex)
+        {
+            log.fatal("readReferralsOfClinical failed", ex);            
+        }
+        return result;
+    }     
+    
+    public ReferralsOfXrayValueObject[] readReferralsOfXray(String personId)
+    {       
+        ReferralsOfXrayValueObject[] result = new ReferralsOfXrayValueObject[0];
+        try
+        {
+            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);            
+            Kuvert[] k = r.getKuvert();
+                       
+            List vdList = new ArrayList();
+            
+            for (int i=0; i<k.length ; i++)     // select indexes of proper type
+            {
+                if (k[i].getNpo_typ().equals(Constants.DOC_TYPE_CONTACTS))
+                {
+                    vdList.add(k[i].getVd_id());       
+                }
+            }            
+            
+            VD_id [] vdids = (VD_id []) vdList.toArray(new VD_id [vdList.size()]);  
+            
+            HamtaVarddokumentReply reply =  service.hamtaVarddokument(vdids);    
+            
+            Kuvert[] docs = reply.getKuvert();
+            
+            ArrayList list = new ArrayList();            
+            
+            for (int i=0; i<docs.length ; i++)
+            {
+                Kuvert doc = docs[i];                
+                
+                XmlDocumentParser parser = new XmlDocumentParser(doc.getContent(),"c","urn:carelink"); 
+
+                String provider = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOPerson/c:name");
+                String unit = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOOrganisation/c:name");
+                
+                if (provider ==null || unit == null) 
+                {
+                    continue;
+                }
+                
+                ReferralsOfXrayValueObject con = new ReferralsOfXrayValueObject();
+                con.setDate(doc.getTidsstampel().getTime());               
+                list.add(con);
+                
+            }   
+            result = (ReferralsOfXrayValueObject[]) list.toArray(new ReferralsOfXrayValueObject[]{});
+        } catch (Exception ex)
+        {
+            log.fatal("readReferralsOfXray failed", ex);            
+        }
+        return result;
+    }     
+
+    public MedicinesValueObject[] readMedicines(String personId)
+    {       
+        MedicinesValueObject[] result = new MedicinesValueObject[0];
+        try
+        {
+            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);            
+            Kuvert[] k = r.getKuvert();
+                       
+            List vdList = new ArrayList();
+            
+            for (int i=0; i<k.length ; i++)     // select indexes of proper type
+            {
+                if (k[i].getNpo_typ().equals(Constants.DOC_TYPE_CONTACTS))
+                {
+                    vdList.add(k[i].getVd_id());       
+                }
+            }            
+            
+            VD_id [] vdids = (VD_id []) vdList.toArray(new VD_id [vdList.size()]);  
+            
+            HamtaVarddokumentReply reply =  service.hamtaVarddokument(vdids);    
+            
+            Kuvert[] docs = reply.getKuvert();
+            
+            ArrayList list = new ArrayList();            
+            
+            for (int i=0; i<docs.length ; i++)
+            {
+                Kuvert doc = docs[i];                
+                
+                XmlDocumentParser parser = new XmlDocumentParser(doc.getContent(),"c","urn:carelink"); 
+
+                String provider = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOPerson/c:name");
+                String unit = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOOrganisation/c:name");
+                
+                if (provider ==null || unit == null) 
+                {
+                    continue;
+                }
+                
+                MedicinesValueObject con = new MedicinesValueObject();
+                con.setStartDate(doc.getTidsstampel().getTime());               
+                list.add(con);
+                
+            }   
+            result = (MedicinesValueObject[]) list.toArray(new MedicinesValueObject[]{});
+        } catch (Exception ex)
+        {
+            log.fatal("readMedicines failed", ex);            
+        }
+        return result;
+    }    
+
+    public DiagnosisValueObject[] readDiagnosis(String personId)
+    {       
+        DiagnosisValueObject[] result = new DiagnosisValueObject[0];
+        try
+        {
+            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);            
+            Kuvert[] k = r.getKuvert();
+                       
+            List vdList = new ArrayList();
+            
+            for (int i=0; i<k.length ; i++)     // select indexes of proper type
+            {
+                if (k[i].getNpo_typ().equals(Constants.DOC_TYPE_CONTACTS))
+                {
+                    vdList.add(k[i].getVd_id());       
+                }
+            }            
+            
+            VD_id [] vdids = (VD_id []) vdList.toArray(new VD_id [vdList.size()]);  
+            
+            HamtaVarddokumentReply reply =  service.hamtaVarddokument(vdids);    
+            
+            Kuvert[] docs = reply.getKuvert();
+            
+            ArrayList list = new ArrayList();            
+            
+            for (int i=0; i<docs.length ; i++)
+            {
+                Kuvert doc = docs[i];                
+                
+                XmlDocumentParser parser = new XmlDocumentParser(doc.getContent(),"c","urn:carelink"); 
+
+                String provider = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOPerson/c:name");
+                String unit = parser.selectNodeText("/c:NPORapportPrimarvardsKontakt/c:NPORapportDel/c:NPOPrimarvardsKontakt/c:NPOVardkontakt/c:NPOHealthcareProfessionalRole/c:NPOOrganisation/c:name");
+                
+                if (provider ==null || unit == null) 
+                {
+                    continue;
+                }
+                
+                DiagnosisValueObject con = new DiagnosisValueObject();
+                con.setDate(doc.getTidsstampel().getTime());               
+                list.add(con);
+                
+            }   
+            result = (DiagnosisValueObject[]) list.toArray(new DiagnosisValueObject[]{});
+        } catch (Exception ex)
+        {
+            log.fatal("readDiagnosis failed", ex);            
+        }
+        return result;
+    }
+    
     public PersonalInfo readPersonalInfo(String personId)
     {
         PersonalInfo result = new PersonalInfo();
@@ -206,6 +361,43 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
         
         return result;
     }
+
+    private void readall(String personId)
+    {
+        try
+        {
+            HamtaVarddokumentIndexReply r = service.hamtaVarddokumentIndex(personId);            
+            Kuvert[] k = r.getKuvert();
+                       
+            List vdList = new ArrayList();
+            
+            for (int i=0; i<k.length ; i++)     // select indexes of proper type
+            {            
+                vdList.add(k[i].getVd_id());                   
+            }            
+            
+            VD_id [] vdids = (VD_id []) vdList.toArray(new VD_id [vdList.size()]);  
+            
+            HamtaVarddokumentReply reply =  service.hamtaVarddokument(vdids);    
+            
+            Kuvert[] docs = reply.getKuvert();
+                        
+            
+            BufferedWriter out = new BufferedWriter(new FileWriter("outfilename.txt"));
+            
+            for (int i=0; i<docs.length ; i++)
+            {
+                String xx = docs[0].getContent();        // read document's content as xml                
+                out.write(xx);
+            }
+            out.close();
+            
+        } catch (Exception ex)
+        {
+            log.fatal("readContacts failed", ex);            
+        }
+        
+    }
     
     private void setSoapHeader()
     {        
@@ -213,7 +405,6 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
         {
             final SOAPHeaderElement npoElement = new SOAPHeaderElement("http://carelink.se/webservices/npo", "NPOMessageHeader");
             final SOAPHeaderElement ticketElement = new SOAPHeaderElement("http://carelink.se/webservices/npo", "ticket");
-            
             
             npoElement.addChildElement(ticketElement);
             
@@ -245,9 +436,7 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
             log.fatal("setSoapHeader failed", ex);
         }*/
     }
-    
-    
-    
+
     private String readNPOEndpointAddress()
     {
         String result = null;
@@ -255,15 +444,13 @@ public class NPODataProvider implements se.idega.ehealth.business.dataprovider.D
         {
             FacesContext context = FacesContext.getCurrentInstance();
             IWContext iwContext = IWContext.getIWContext(context);
-            result = iwContext.getIWMainApplication().getSystemProperties().getIWProperty("WS_ENDPOINT_ADDRESS").getValue();
+            result = iwContext.getIWMainApplication().getSettings().getProperty(Constants.WS_ENDPOINT_ADDRESS);
         }
         catch (Throwable ex)
         {
-            log.warn("Unable to read WS_ENDPOINT_ADDRESS from SystemProperties");
+            log.warn("Unable to read "+Constants.WS_ENDPOINT_ADDRESS+" from System Properties");
         }
         return result;
-    }
-    
-        
+    }    
     
 }
